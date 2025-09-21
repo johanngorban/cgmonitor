@@ -8,13 +8,16 @@
 #include <stdio.h>
 #include <cjson/cJSON.h>
 
-const char CGMINER_ADDRESS[] = "127.0.0.1";
-const char CGMINER_PORT[]    = "4028";
+const char  CGMINER_ADDRESS[] = "127.0.0.1";
+const char  CGMINER_PORT[]    = "4028";
+const char  GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
 
-const char GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
+const int   CHUNK_SIZE = 4096;
+const int   MAX_CONNECTION_ATTEMPTS = 5;
+const int   COLLECTING_PERIOD_SEC = 5;
+const int   CONNECTION_FAILURE_SLEEP_SEC = 20;
 
-const int CHUNK_SIZE = 4096;
-
+static int failed_connection_attempts = 0;
 
 void *collect_loop(void *arg) {
     (void) arg;
@@ -22,24 +25,30 @@ void *collect_loop(void *arg) {
     static int cgminer_socket = -1;
 
     while (1) {
-        sleep(5);
-
-        printf("Collecting loop is running\n");
+        if (failed_connection_attempts >= MAX_CONNECTION_ATTEMPTS) {
+            perror("max connection attempts reached");
+            failed_connection_attempts = 0;
+            sleep(CONNECTION_FAILURE_SLEEP_SEC);
+        }
+        else {
+            sleep(COLLECTING_PERIOD_SEC);
+        }
 
         int status = cgminer_connect(&cgminer_socket);
         if (status < 0) {
-            return NULL;
+            failed_connection_attempts++;
+            continue;
         }
 
         status = send_request(cgminer_socket, GET_MINERS_INFO);
         if (status < 0) {
-            return NULL;
+            continue;
         }
 
         char *response;
         ssize_t bytes_received = get_response(cgminer_socket, &response);
         if (bytes_received < 1) {
-            return NULL;
+            continue;
         }
 
         asic_info *asics = NULL;
