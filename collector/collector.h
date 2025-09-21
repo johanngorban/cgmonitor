@@ -2,15 +2,8 @@
 
 #include <unistd.h>
 
-const char CGMINER_ADDRESS[] = "127.0.0.1";
-const char CGMINER_PORT[]    = "4228";
-
-const char GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
-
-const int CHUNK_SIZE = 4096;
-
 /// @brief infinity collecting loop
-void collect_loop();
+void *collect_loop(void *arg);
 
 /// @brief connect to cgminer
 /// @return status code, 0 on success

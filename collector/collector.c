@@ -1,28 +1,49 @@
 #include "collector.h"
+#include "asic_info.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
-static int cgminer_socket = -1;
+const char CGMINER_ADDRESS[] = "127.0.0.1";
+const char CGMINER_PORT[]    = "4228";
 
-void collect_loop() {
+const char GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
+
+const int CHUNK_SIZE = 4096;
+
+
+void *collect_loop(void *arg) {
+    (void) arg;
+
+    static int cgminer_socket = -1;
     int status = cgminer_connect(&cgminer_socket);
     if (status < 0) {
-        return;
+        return NULL;
     }
 
     status = send_request(cgminer_socket, GET_MINERS_INFO);
     if (status < 0) {
-        return;
+        return NULL;
     }
 
     char *response;
     ssize_t bytes_received = get_response(cgminer_socket, &response);
     if (bytes_received < 1) {
-        return;
+        return NULL;
     }
+
+    asic_info asic;
+    status = asic_info_from_json(&asic, response);
+    if (status < 0) {
+        return NULL;
+    }
+
+    sleep(5);
+
+    return NULL;
 }
 
 int cgminer_connect(int *sockfd) {
