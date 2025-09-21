@@ -6,9 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <cjson/cJSON.h>
 
 const char CGMINER_ADDRESS[] = "127.0.0.1";
-const char CGMINER_PORT[]    = "4228";
+const char CGMINER_PORT[]    = "4028";
 
 const char GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
 
@@ -19,29 +20,35 @@ void *collect_loop(void *arg) {
     (void) arg;
 
     static int cgminer_socket = -1;
-    int status = cgminer_connect(&cgminer_socket);
-    if (status < 0) {
-        return NULL;
-    }
 
-    status = send_request(cgminer_socket, GET_MINERS_INFO);
-    if (status < 0) {
-        return NULL;
-    }
+    while (1) {
+        sleep(5);
 
-    char *response;
-    ssize_t bytes_received = get_response(cgminer_socket, &response);
-    if (bytes_received < 1) {
-        return NULL;
-    }
+        printf("Collecting loop is running\n");
 
-    asic_info asic;
-    status = asic_info_from_json(&asic, response);
-    if (status < 0) {
-        return NULL;
-    }
+        int status = cgminer_connect(&cgminer_socket);
+        if (status < 0) {
+            return NULL;
+        }
 
-    sleep(5);
+        status = send_request(cgminer_socket, GET_MINERS_INFO);
+        if (status < 0) {
+            return NULL;
+        }
+
+        char *response;
+        ssize_t bytes_received = get_response(cgminer_socket, &response);
+        if (bytes_received < 1) {
+            return NULL;
+        }
+
+        asic_info *asics = NULL;
+        int asic_counter = extract_asics_from_devs(&asics, response);
+        printf("Got %d asics\n", asic_counter);
+        for (int i = 0; i < asic_counter; i++) {
+            printf("Asic %s: %.2fMHs\n", asics[i].name, asics[i].mhs_av);
+        }
+    }
 
     return NULL;
 }
@@ -147,4 +154,54 @@ ssize_t get_response(int sockfd, char **response) {
 
     *response = buf;
     return total_bytes;
+}
+
+size_t extract_asics_from_devs(asic_info **asics, const char *json) {
+    if (asics == NULL || json == NULL) {
+        return -1;
+    }
+
+    cJSON *root = cJSON_Parse(json);
+    if (root == NULL) {
+        perror("cJSON_Parse");
+        return -1;
+    }
+
+    cJSON *devs = cJSON_GetObjectItemCaseSensitive(root, "DEVS");
+    if (devs == NULL || !cJSON_IsArray(devs)) {
+        perror("DEVS is not an array");
+        cJSON_Delete(root);
+        return -1;
+    }
+
+    size_t count = cJSON_GetArraySize(devs);
+    if (count == 0) {
+        *asics = NULL;
+        cJSON_Delete(root);
+        return 0;
+    }
+
+    asic_info *array = (asic_info *) malloc(sizeof(asic_info) * count);
+    if (array == NULL) {
+        perror("malloc asic array");
+        cJSON_Delete(root);
+        return -1;
+    }
+
+    for (size_t i = 0; i < count; i++) {
+        cJSON *item = cJSON_GetArrayItem(devs, i);
+        if (item == NULL || !cJSON_IsObject(item)) {
+            perror("array item is not an object");
+            continue;
+        }
+
+        if (asic_info_from_json(&array[i], item) < 0) {
+            perror("failed to parse asic_info");
+        }
+    }
+
+    *asics = array;
+    cJSON_Delete(root);
+
+    return count;
 }
