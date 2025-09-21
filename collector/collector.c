@@ -1,4 +1,5 @@
 #include "collector.h"
+#include "crud.h"
 #include "asic_info.h"
 
 #include <arpa/inet.h>
@@ -53,10 +54,18 @@ void *collect_loop(void *arg) {
 
         asic_info *asics = NULL;
         int asic_counter = extract_asics_from_devs(&asics, response);
-        printf("Got %d asics\n", asic_counter);
+
         for (int i = 0; i < asic_counter; i++) {
-            printf("Asic %s: %.2fMHs\n", asics[i].name, asics[i].mhs_av);
+            status = storage_add_record(&asics[i], time(NULL));
+            if (status < 0) {
+                perror("cannot save record");
+            }
         }
+
+        free(asics);
+        free(response);
+
+        close(cgminer_socket);
     }
 
     return NULL;

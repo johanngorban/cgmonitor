@@ -2,6 +2,7 @@ project(cgmonitor)
 cmake_minimum_required(VERSION 3.16)
 
 find_package(cJSON REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 add_subdirectory(shared/asic)
 add_subdirectory(shared/clog)
@@ -29,4 +30,5 @@ target_link_libraries(cgmonitor
         cjson
         clog
         cstruct
+        SQLite::SQLite3
 )
