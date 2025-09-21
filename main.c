@@ -3,10 +3,12 @@
 
 #include "collector.h"
 #include "crud.h"
+#include "logging.h"
 
 pthread_t collector_tid;
 
 void startup() {
+    log_init("cgmonitor.log");
     storage_init("data/asic_data.db");
 }
 

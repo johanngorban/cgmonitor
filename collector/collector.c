@@ -1,6 +1,7 @@
 #include "collector.h"
 #include "crud.h"
 #include "asic_info.h"
+#include "logging.h"
 
 #include <arpa/inet.h>
 #include <sys/socket.h>
@@ -27,38 +28,52 @@ void *collect_loop(void *arg) {
 
     while (1) {
         if (failed_connection_attempts >= MAX_CONNECTION_ATTEMPTS) {
-            perror("max connection attempts reached");
+            log_error("Max connection attempts reached");
             failed_connection_attempts = 0;
             sleep(CONNECTION_FAILURE_SLEEP_SEC);
+            continue;
         }
         else {
+            log_debug("Sleeping before next collection cycle");
             sleep(COLLECTING_PERIOD_SEC);
         }
 
+        log_debug("Attempting to connect to cgminer");
         int status = cgminer_connect(&cgminer_socket);
         if (status < 0) {
             failed_connection_attempts++;
+            log_warning("Failed to connect to cgminer");
             continue;
         }
+        log_info("Successfully connected to cgminer");
 
         status = send_request(cgminer_socket, GET_MINERS_INFO);
         if (status < 0) {
+            log_error("Failed to send request to cgminer");
+            close(cgminer_socket);
             continue;
         }
+        log_debug("Request sent to cgminer");
 
         char *response;
         ssize_t bytes_received = get_response(cgminer_socket, &response);
         if (bytes_received < 1) {
+            log_warning("No response received from cgminer");
+            close(cgminer_socket);
             continue;
         }
+        log_debug("Received response from cgminer");
 
         asic_info *asics = NULL;
         int asic_counter = extract_asics_from_devs(&asics, response);
+        log_info("Extracted asic count from response");
 
         for (int i = 0; i < asic_counter; i++) {
             status = storage_add_record(&asics[i], time(NULL));
             if (status < 0) {
-                perror("cannot save record");
+                log_error("Cannot save asic record to storage");
+            } else {
+                log_debug("Saved asic record to storage");
             }
         }
 
@@ -66,6 +81,7 @@ void *collect_loop(void *arg) {
         free(response);
 
         close(cgminer_socket);
+        log_debug("Closed cgminer socket");
     }
 
     return NULL;
