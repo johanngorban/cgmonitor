@@ -98,5 +98,56 @@ int storage_add_record(const asic_info *asic, time_t record_time) {
 }
 
 int storage_get_current(int asic_id, asic_info *asic) {
-    
+    if (asic == NULL) {
+        fprintf(stderr, "storage_get_current: asic is NULL\n");
+        return -1;
+    }
+
+    const char *sql =
+        "SELECT id, name, mhs_av, temperature, utility, accepted, rejected, hw_errors "
+        "FROM asics_current WHERE id = ?1;";
+
+    sqlite3_stmt *stmt = NULL;
+    int rc = sqlite3_prepare_v2(DATABASE, sql, -1, &stmt, NULL);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "storage_get_current: prepare failed: %s\n", sqlite3_errmsg(DATABASE));
+        return -1;
+    }
+
+    rc = sqlite3_bind_int(stmt, 1, asic_id);
+    if (rc != SQLITE_OK) {
+        fprintf(stderr, "storage_get_current: bind failed: %s\n", sqlite3_errmsg(DATABASE));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    rc = sqlite3_step(stmt);
+    if (rc == SQLITE_ROW) {
+        asic->id = sqlite3_column_int(stmt, 0);
+        const unsigned char *name = sqlite3_column_text(stmt, 1);
+        if (name != NULL) {
+            strncpy(asic->name, (const char *)name, sizeof(asic->name) - 1);
+            asic->name[sizeof(asic->name) - 1] = '\0';
+        } else {
+            asic->name[0] = '\0';
+        }
+        asic->mhs_av      = sqlite3_column_double(stmt, 2);
+        asic->temperature = sqlite3_column_double(stmt, 3);
+        asic->utility     = sqlite3_column_double(stmt, 4);
+        asic->accepted    = sqlite3_column_int(stmt, 5);
+        asic->rejected    = sqlite3_column_int(stmt, 6);
+        asic->hw_errors   = sqlite3_column_int(stmt, 7);
+    } 
+    else if (rc == SQLITE_DONE) {
+        sqlite3_finalize(stmt);
+        return 1;
+    } 
+    else {
+        fprintf(stderr, "storage_get_current: step failed: %s\n", sqlite3_errmsg(DATABASE));
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_finalize(stmt);
+    return 0;
 }
