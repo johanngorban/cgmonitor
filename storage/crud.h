@@ -14,4 +14,4 @@ void storage_free();
 
 int storage_add_record(const asic_info *asic, time_t record_time);
 
-int storage_get_history(asic_record **records, int *count);
+int storage_get_current(int asic_id, asic_info *asic);
