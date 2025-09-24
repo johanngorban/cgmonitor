@@ -1,6 +1,7 @@
 #include "collector.h"
-#include "crud.h"
+#include "storage.h"
 #include "asic_info.h"
+#include "parsers.h"
 #include "logging.h"
 
 #include <arpa/inet.h>
@@ -12,7 +13,11 @@
 
 const char  CGMINER_ADDRESS[] = "127.0.0.1";
 const char  CGMINER_PORT[]    = "4028";
-const char  GET_MINERS_INFO[] = "{\"command\": \"devs\"}";
+
+// Requests
+const char  CGMINER_GET_DEVS[]      = "{\"command\": \"devs\"}";
+const char  CGMINER_GET_SUMMARY[]   = "{\"command\": \"summary\"}";
+const char  CGMINER_GET_STATS[]     = "{\"command\": \"stats\"}";
 
 const int   CHUNK_SIZE = 4096;
 const int   MAX_CONNECTION_ATTEMPTS = 5;
@@ -47,7 +52,7 @@ void *collect_loop(void *arg) {
         }
         log_info("Successfully connected to cgminer");
 
-        status = send_request(cgminer_socket, GET_MINERS_INFO);
+        status = send_request(cgminer_socket, CGMINER_GET_SUMMARY);
         if (status < 0) {
             log_error("Failed to send request to cgminer");
             close(cgminer_socket);
@@ -64,21 +69,18 @@ void *collect_loop(void *arg) {
         }
         log_debug("Received response from cgminer");
 
-        asic_info *asics = NULL;
-        int asic_counter = extract_asics_from_devs(&asics, response);
-        log_info("Extracted asic count from response");
+        miner_info miner;
+        status = parse_json_summary(&miner, response);
+        log_info("Summary response processing");
+        free(response);
 
-        for (int i = 0; i < asic_counter; i++) {
-            status = storage_add_record(&asics[i], time(NULL));
-            if (status < 0) {
-                log_error("Cannot save asic record to storage");
-            } else {
-                log_debug("Saved asic record to storage");
-            }
+        if (status < 0) {
+            log_error("Failed to parse summary JSON");
+            close(cgminer_socket);
+            continue;
         }
 
-        free(asics);
-        free(response);
+        storage_save_miner_info(&miner);
 
         close(cgminer_socket);
         log_debug("Closed cgminer socket");
@@ -131,7 +133,6 @@ int send_request(int sockfd, const char *request) {
 
     return 0;
 }
-
 
 ssize_t get_response(int sockfd, char **response) {
     if (response == NULL) {
@@ -188,54 +189,4 @@ ssize_t get_response(int sockfd, char **response) {
 
     *response = buf;
     return total_bytes;
-}
-
-size_t extract_asics_from_devs(asic_info **asics, const char *json) {
-    if (asics == NULL || json == NULL) {
-        return -1;
-    }
-
-    cJSON *root = cJSON_Parse(json);
-    if (root == NULL) {
-        perror("cJSON_Parse");
-        return -1;
-    }
-
-    cJSON *devs = cJSON_GetObjectItemCaseSensitive(root, "DEVS");
-    if (devs == NULL || !cJSON_IsArray(devs)) {
-        perror("DEVS is not an array");
-        cJSON_Delete(root);
-        return -1;
-    }
-
-    size_t count = cJSON_GetArraySize(devs);
-    if (count == 0) {
-        *asics = NULL;
-        cJSON_Delete(root);
-        return 0;
-    }
-
-    asic_info *array = (asic_info *) malloc(sizeof(asic_info) * count);
-    if (array == NULL) {
-        perror("malloc asic array");
-        cJSON_Delete(root);
-        return -1;
-    }
-
-    for (size_t i = 0; i < count; i++) {
-        cJSON *item = cJSON_GetArrayItem(devs, i);
-        if (item == NULL || !cJSON_IsObject(item)) {
-            perror("array item is not an object");
-            continue;
-        }
-
-        if (asic_info_from_json(&array[i], item) < 0) {
-            perror("failed to parse asic_info");
-        }
-    }
-
-    *asics = array;
-    cJSON_Delete(root);
-
-    return count;
 }
