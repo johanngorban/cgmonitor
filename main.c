@@ -2,20 +2,26 @@
 #include <stdio.h>
 
 #include "collector.h"
-#include "crud.h"
+#include "storage.h"
 #include "logging.h"
 
 pthread_t collector_tid;
+pthread_t storage_tid;
 
 void startup() {
     log_init("cgmonitor.log");
-    storage_init("data/asic_data.db");
 }
 
 void create_threads() {
     int status = pthread_create(&collector_tid, NULL, collect_loop, NULL);
     if (status != 0) {
         perror("collector loop creation");
+        return;
+    }
+
+    status = pthread_create(&storage_tid, NULL, storage_loop, NULL);
+    if (status != 0) {
+        perror("storage loop creation");
         return;
     }
 }
@@ -26,6 +32,7 @@ int main() {
     create_threads();
 
     pthread_join(collector_tid, NULL);
+    pthread_join(storage_tid, NULL);
     
     return 0;
 }

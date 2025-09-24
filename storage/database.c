@@ -1,4 +1,4 @@
-#include "crud.h"
+#include "database.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@ const char SQL_HISTORY[] =
     "ts INTEGER);";
 
 
-int storage_init(const char *db_path) {
+int database_init(const char *db_path) {
     if (sqlite3_open(db_path, &DATABASE) != SQLITE_OK) {
         fprintf(stderr, "Cannot open database: %s\n", sqlite3_errmsg(DATABASE));
         return -1;
@@ -55,7 +55,7 @@ int storage_init(const char *db_path) {
     return 0;
 }
 
-void storage_free() {
+void database_free() {
     if (DATABASE != NULL) {
         sqlite3_close(DATABASE);
         DATABASE = NULL;
