@@ -1,6 +1,7 @@
 #include <pthread.h>
 #include <stdio.h>
 
+#include "server.h"
 #include "collector.h"
 #include "storage.h"
 #include "logging.h"
@@ -10,6 +11,15 @@ pthread_t storage_tid;
 
 void startup() {
     log_init("cgmonitor.log");
+
+    int status = server_start(9097);
+    if (status != 0) {
+        printf("An error occurred!\n");
+    }
+}
+
+void finish() {
+    server_stop();
 }
 
 void create_threads() {

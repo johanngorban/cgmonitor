@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.16)
 
 find_package(cJSON REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(MHD REQUIRED libmicrohttpd)
 
 add_subdirectory(shared/asic)
 add_subdirectory(shared/clog)
@@ -22,6 +24,7 @@ target_include_directories(cgmonitor
         ${CMAKE_CURRENT_SOURCE_DIR}/api
         ${CMAKE_CURRENT_SOURCE_DIR}/collector
         ${CMAKE_CURRENT_SOURCE_DIR}/storage
+        ${MHD_INCLUDE_DIRS}
 )
 
 target_link_libraries(cgmonitor
@@ -31,4 +34,6 @@ target_link_libraries(cgmonitor
         clog
         cstruct
         SQLite::SQLite3
+        ${MHD_LIBRARIES}
+        pthread
 )
