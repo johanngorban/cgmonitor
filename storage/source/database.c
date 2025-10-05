@@ -10,26 +10,26 @@
 static sqlite3 *sql_db = NULL;
 
 int db_init(const char *db_path) {
-    int status = sqlite3_open(db_path, &sql_db);
-    if (status != SQLITE_OK) {
-        fprintf(stderr, "Cannot open sql_db: %s\n", sqlite3_errmsg(sql_db));
-        return -1;
-    }
+    // int status = sqlite3_open(db_path, &sql_db);
+    // if (status != SQLITE_OK) {
+    //     fprintf(stderr, "Cannot open sql_db: %s\n", sqlite3_errmsg(sql_db));
+    //     return -1;
+    // }
 
-    char *err = NULL;
-    status = sqlite3_exec(sql_db, SQL_CURRENT, 0, 0, &err);
-    if (status != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", err);
-        sqlite3_free(err);
-        return -1;
-    }
+    // char *err = NULL;
+    // status = sqlite3_exec(sql_db, SQL_CURRENT, 0, 0, &err);
+    // if (status != SQLITE_OK) {
+    //     fprintf(stderr, "SQL error: %s\n", err);
+    //     sqlite3_free(err);
+    //     return -1;
+    // }
 
-    status = sqlite3_exec(sql_db, SQL_HISTORY, 0, 0, &err);
-    if (status != SQLITE_OK) {
-        fprintf(stderr, "SQL error: %s\n", err);
-        sqlite3_free(err);
-        return -1;
-    }
+    // status = sqlite3_exec(sql_db, SQL_HISTORY, 0, 0, &err);
+    // if (status != SQLITE_OK) {
+    //     fprintf(stderr, "SQL error: %s\n", err);
+    //     sqlite3_free(err);
+    //     return -1;
+    // }
 
     return 0;
 }
@@ -61,6 +61,10 @@ int db_get_last_miner_info(miner_record *m) {
     if (m == NULL) {
         return -1;
     }
+
+    memset(&m->data, 0, sizeof(miner_info));
+    m->data.utility = -1;
+    m->time = 0;
 
     return 0;
 }
