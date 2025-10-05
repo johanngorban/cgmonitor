@@ -14,7 +14,7 @@ file(GLOB SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
     ${CMAKE_CURRENT_SOURCE_DIR}/api/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/collector/*.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/storage/source/*.c
 )
 
 add_executable(cgmonitor ${SOURCES})
@@ -23,7 +23,7 @@ target_include_directories(cgmonitor
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/api
         ${CMAKE_CURRENT_SOURCE_DIR}/collector
-        ${CMAKE_CURRENT_SOURCE_DIR}/storage
+        ${CMAKE_CURRENT_SOURCE_DIR}/storage/include
         ${MHD_INCLUDE_DIRS}
 )
 
