@@ -50,14 +50,14 @@ enum MHD_Result handle_requests(void *cls, struct MHD_Connection *connection,
                     size_t *upload_data_size, void **con_cls) 
 {
     if (strcmp(url, "/api/metrics/general") == 0 && strcmp(method, "GET") == 0) {
-        miner_info info;
+        miner_record info;
         storage_get_miner_info(&info);
 
         char buf[512];
         cJSON *root = cJSON_CreateObject();
-        cJSON_AddNumberToObject(root, "hashrate", info.hashrate);
-        cJSON_AddNumberToObject(root, "utility", info.utility);
-        cJSON_AddNumberToObject(root, "power", info.power);
+        cJSON_AddNumberToObject(root, "hashrate", info.data.hashrate);
+        cJSON_AddNumberToObject(root, "utility", info.data.utility);
+        cJSON_AddNumberToObject(root, "power", info.data.power);
 
         char *json_str = cJSON_PrintUnformatted(root);
 

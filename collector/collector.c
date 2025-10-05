@@ -52,7 +52,7 @@ void *collect_loop(void *arg) {
         }
         log_info("Successfully connected to cgminer");
 
-        status = send_request(cgminer_socket, CGMINER_GET_SUMMARY);
+        status = send_request(cgminer_socket, CGMINER_GET_DEVS);
         if (status < 0) {
             log_error("Failed to send request to cgminer");
             close(cgminer_socket);
@@ -80,7 +80,10 @@ void *collect_loop(void *arg) {
             continue;
         }
 
-        storage_save_miner_info(&miner);
+        status = storage_save_miner_info(&miner, time(NULL));
+        if (status < 0)  {
+            log_error("Failed to save miner info");
+        }
 
         close(cgminer_socket);
         log_debug("Closed cgminer socket");
