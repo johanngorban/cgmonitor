@@ -43,6 +43,8 @@ int main() {
 
     pthread_join(collector_tid, NULL);
     pthread_join(storage_tid, NULL);
+
+    finish();
     
     return 0;
 }
