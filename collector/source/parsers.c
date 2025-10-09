@@ -68,6 +68,14 @@ static unsigned int get_miner_voltage(cJSON *stats_item) {
     return voltage / 3;
 }
 
+static void parse_miner_model(miner_info *miner, cJSON *stats_model_item) {
+    cJSON *model = cJSON_GetObjectItemCaseSensitive(stats_model_item, "Type");
+    if (cJSON_IsString(model)) {
+        const char *miner_model = (const char *) model->valuestring;
+        set_miner_model(miner_model);
+    }
+}
+
 int parse_json_stats(miner_info *miner, const char *stats_json) {
     if (miner == NULL || stats_json == NULL) {
         return -1;
@@ -83,6 +91,13 @@ int parse_json_stats(miner_info *miner, const char *stats_json) {
         cJSON_Delete(root);
         return -1;
     }
+
+    cJSON *model_info = cJSON_GetArrayItem(stats_array, 0);
+    if (model_info == NULL) {
+        cJSON_Delete(root);
+        return -1;
+    }
+    parse_miner_model(miner, model_info);
 
     cJSON *item = cJSON_GetArrayItem(stats_array, 1);
     if (item == NULL) {

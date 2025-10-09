@@ -6,10 +6,10 @@
 Response:  
 ```json
 {
-  "hashrate": 1050,
-  "temperature": 68.5,
-  "power": 1200,
-  "voltage": 12.1
+  "model": "Antminer S19 (126) (Vnish 1.2.6)",
+  "hashrate": 100.34,
+  "voltage": 0.0,
+  "power": 170.0
 }
 ```
 
