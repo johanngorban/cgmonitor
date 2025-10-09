@@ -9,11 +9,7 @@ Response:
   "hashrate": 1050,
   "temperature": 68.5,
   "power": 1200,
-  "voltage": 12.1,
-  "utility": 98.2,
-  "accepted": 123456,
-  "rejected": 234,
-  "hw_errors": 5
+  "voltage": 12.1
 }
 ```
 
