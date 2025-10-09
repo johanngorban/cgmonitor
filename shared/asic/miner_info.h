@@ -8,8 +8,7 @@
 
 typedef struct {
     double hashrate;    // Hashrate in MHs
-    // double temp;        // Temperature in grad Celsium
-    double utility;     // Utility (share per minute)
+    double temp;        // Temperature in grad Celsium
     double power;       // Power in watts
     double voltage;     // Voltage in volts
     int    uptime;      // Uptime in secods

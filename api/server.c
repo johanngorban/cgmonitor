@@ -56,7 +56,7 @@ enum MHD_Result handle_requests(void *cls, struct MHD_Connection *connection,
         char buf[512];
         cJSON *root = cJSON_CreateObject();
         cJSON_AddNumberToObject(root, "hashrate", info.data.hashrate);
-        cJSON_AddNumberToObject(root, "utility", info.data.utility);
+        cJSON_AddNumberToObject(root, "voltage", info.data.voltage);
         cJSON_AddNumberToObject(root, "power", info.data.power);
 
         char *json_str = cJSON_PrintUnformatted(root);

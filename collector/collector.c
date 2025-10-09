@@ -52,7 +52,7 @@ void *collect_loop(void *arg) {
         }
         log_info("Successfully connected to cgminer");
 
-        status = send_request(cgminer_socket, CGMINER_GET_DEVS);
+        status = send_request(cgminer_socket, CGMINER_GET_STATS);
         if (status < 0) {
             log_error("Failed to send request to cgminer");
             close(cgminer_socket);
@@ -70,7 +70,7 @@ void *collect_loop(void *arg) {
         log_debug("Received response from cgminer");
 
         miner_info miner;
-        status = parse_json_summary(&miner, response);
+        status = parse_json_stats(&miner, response);
         log_info("Summary response processing");
         free(response);
 

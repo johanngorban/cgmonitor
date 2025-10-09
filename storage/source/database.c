@@ -62,9 +62,5 @@ int db_get_last_miner_info(miner_record *m) {
         return -1;
     }
 
-    memset(&m->data, 0, sizeof(miner_info));
-    m->data.utility = -1;
-    m->time = 0;
-
     return 0;
 }
