@@ -1,5 +1,16 @@
 # API Reference
 
+## GET `/api/device-info`
+Возвращает информацию о майнере: название модели и название майнера
+
+Response:
+```json
+{
+  "model": "Antminer S19 (126) (Vnish 1.2.6)",
+  "name": "MyMiner"
+}
+```
+
 ## GET `/api/metrics/general`
 Возвращает только **общие метрики майнера**, без данных по вентиляторам и чипам.  
 
