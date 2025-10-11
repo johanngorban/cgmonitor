@@ -53,14 +53,27 @@ enum MHD_Result handle_requests(void *cls, struct MHD_Connection *connection,
         miner_record info;
         storage_get_miner_info(&info);
 
-        char buf[512];
+        char buf[512]; // TODO: remove
         cJSON *root = cJSON_CreateObject();
-        char model_name[64];
-        get_miner_model(model_name, 64);
-        cJSON_AddStringToObject(root, "model", model_name);
+        
         cJSON_AddNumberToObject(root, "hashrate", info.data.hashrate);
         cJSON_AddNumberToObject(root, "voltage", info.data.voltage);
         cJSON_AddNumberToObject(root, "power", info.data.power);
+
+        char *json_str = cJSON_PrintUnformatted(root);
+
+        int status = send_json(connection, json_str);
+        free(json_str);
+        cJSON_Delete(root);
+
+        return status;
+    }
+    else if (strcmp(url, "/api/device-info") == 0 && strcmp(method, "GET") == 0) {
+        char *device_model = get_miner_model();
+
+        cJSON *root = cJSON_CreateObject();
+
+        cJSON_AddStringToObject(root, "model", device_model);
 
         char *json_str = cJSON_PrintUnformatted(root);
 

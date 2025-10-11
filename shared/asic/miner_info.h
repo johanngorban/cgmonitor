@@ -23,6 +23,6 @@ int set_miner_name(const char *name);
 
 int set_miner_model(const char *model);
 
-int get_miner_name(char *buf, size_t buf_size);
+char *get_miner_name();
 
-int get_miner_model(char *buf, size_t buf_size);
+char *get_miner_model();

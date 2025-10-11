@@ -1,6 +1,7 @@
 #include "miner_info.h"
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdio.h>
 
 static char miner_name[MINER_NAME_LENGTH];
@@ -28,20 +29,20 @@ int set_miner_model(const char *model) {
     return set_str(miner_model, model, MINER_MODEL_LENGTH);
 }
 
-int get_miner_name(char *buf, size_t buf_size) {
-    if (!buf) return -1;
+char *get_miner_name() {
+    char *copy = (char *) malloc(strlen(miner_name) + 1);
+    if (copy != NULL) {
+        strcpy(copy, miner_name);
+    }
 
-    strncpy(buf, miner_name, buf_size - 1);
-    buf[buf_size - 1] = '\0';
-
-    return 0;
+    return copy;
 }
 
-int get_miner_model(char *buf, size_t buf_size) {
-    if (!buf) return -1;
+char *get_miner_model() {
+    char *copy = (char *) malloc(strlen(miner_model) + 1);
+    if (copy != NULL) {
+        strcpy(copy, miner_model);
+    }
 
-    strncpy(buf, miner_model, buf_size - 1);
-    buf[buf_size - 1] = '\0';
-
-    return 0;
+    return copy;
 }
