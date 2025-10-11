@@ -12,7 +12,7 @@ add_subdirectory(shared/cstruct)
 
 file(GLOB SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/api/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/api/source/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/collector/source/*.c
     ${CMAKE_CURRENT_SOURCE_DIR}/storage/source/*.c
 )
@@ -21,7 +21,7 @@ add_executable(cgmonitor ${SOURCES})
 
 target_include_directories(cgmonitor
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/api
+        ${CMAKE_CURRENT_SOURCE_DIR}/api/include
         ${CMAKE_CURRENT_SOURCE_DIR}/collector/include
         ${CMAKE_CURRENT_SOURCE_DIR}/storage/include
         ${MHD_INCLUDE_DIRS}
