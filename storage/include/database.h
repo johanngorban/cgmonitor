@@ -20,7 +20,7 @@ int db_insert_miner_info(const miner_info *m, time_t t);
 
 // Get all miner info in database
 // Return the count of miner info extracted (<= max_count), -1 on errors
-int db_get_all_miner_info(miner_record *m, int max_count);
+int db_get_all_miner_info(miner_record **m, int max_count);
 
 // Get only the last miner info in database, save it into m
 // Return 0 on success, -1 on errors

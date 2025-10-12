@@ -40,13 +40,13 @@ int storage_get_miner_info(miner_record *out) {
     }
 
     int status = cache_get_miner_info(out);
-    if (status == 0 && out != NULL) {
+    if (status == 0) {
         return 0;
     }
 
     return db_get_last_miner_info(out);
 }
 
-int storage_get_all_miner_info(miner_record *out, int max_count) {
+int storage_get_all_miner_info(miner_record **out, int max_count) {
     return db_get_all_miner_info(out, max_count);
 }

@@ -11,4 +11,4 @@ int storage_save_miner_info(const miner_info *info, time_t timestamp);
 
 int storage_get_miner_info(miner_record *out);
 
-int storage_get_all_miner_info(miner_record *out, int max_count);
+int storage_get_all_miner_info(miner_record **out, int max_count);
