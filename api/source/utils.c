@@ -1,6 +1,6 @@
 #include "utils.h"
 
-#include <string.h>яё
+#include <string.h>
 
 int send_json(struct MHD_Connection *connection, const char *json) {
     struct MHD_Response *response;
