@@ -10,7 +10,9 @@ pthread_t collector_tid;
 pthread_t storage_tid;
 
 void startup() {
-    log_init("cgmonitor.log");
+    set_log_debug();
+    set_log_flags(LOG_SHORT);
+    log_file_append("cgmonitor.log");
 
     int status = server_start(9097);
     if (status != 0) {
@@ -20,6 +22,8 @@ void startup() {
 
 void finish() {
     server_stop();
+
+    log_exit();
 }
 
 void create_threads() {
