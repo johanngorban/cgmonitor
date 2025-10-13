@@ -32,7 +32,6 @@ int db_init(const char *db_path) {
     if (status != SQLITE_OK) {
         // TODO: add logs
         sqlite3_free(err);
-        return -1;
     }
 
     return 0;

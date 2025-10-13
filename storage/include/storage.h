@@ -4,6 +4,10 @@
 #include "database.h"
 #include "cache.h"
 
+void storage_set_update_period(unsigned seconds);
+
+int storage_start(const char *db_path);
+
 // Storage main loop
 void *storage_loop(void *arg);
 

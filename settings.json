@@ -1,0 +1,11 @@
+{
+    "debug": true,
+    "log_file": "cgmonitor.log",
+    "db_path": "data/data.db",
+    "server_port": 9097,
+    "server_bind": "127.0.0.1",
+    "miner_bind": "127.0.0.1",
+    "miner_port": 4028,
+    "polling_interval": 5,
+    "connection_retry_limit": 5
+}
