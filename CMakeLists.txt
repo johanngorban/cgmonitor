@@ -8,7 +8,6 @@ pkg_check_modules(MHD REQUIRED libmicrohttpd)
 
 add_subdirectory(shared/asic)
 add_subdirectory(shared/clog)
-add_subdirectory(shared/cstruct)
 
 file(GLOB SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
@@ -32,7 +31,6 @@ target_link_libraries(cgmonitor
         asic
         cjson
         clog
-        cstruct
         SQLite::SQLite3
         ${MHD_LIBRARIES}
         pthread
