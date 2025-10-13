@@ -1,6 +1,3 @@
-[submodule "shared/cstruct"]
-	path = shared/cstruct
-	url = https://github.com/johann-gorban/cstruct.git
 [submodule "shared/clog"]
 	path = shared/clog
 	url = https://github.com/johann-gorban/clog.git
