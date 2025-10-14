@@ -1,3 +1,0 @@
-[submodule "shared/clog"]
-	path = shared/clog
-	url = https://github.com/johann-gorban/clog.git

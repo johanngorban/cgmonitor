@@ -1,7 +1,7 @@
 #include "server.h"
 #include "miner_info.h"
 #include "handler.h"
-#include "logging.h"
+#include <clog/logging.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -11,6 +11,7 @@
 static struct MHD_Daemon *serverd = NULL;
 
 int server_start(int port) {
+    log_info("Starting server...");
     if (serverd != NULL) {
         log_error("Server is already running");
         return -1;
@@ -44,8 +45,10 @@ enum MHD_Result handle_requests(void *cls, struct MHD_Connection *connection,
                     const char *version, const char *upload_data,
                     size_t *upload_data_size, void **con_cls) 
 {
+    log_info("Looking for a handler for %s %s", method, url);
     handler_t handler = find_handler(url, method);
     if (handler == NULL) {
+        log_error("Handler not found: %s %s", method, url);
         return 0;
     }
 

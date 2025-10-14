@@ -6,6 +6,7 @@
 #include <stddef.h>
 #include <string.h>
 #include <stdlib.h>
+#include <clog/logging.h>
 
 // typedef struct {
 //     char            method[MAX_HTTP_METHOD_LENGTH];
@@ -32,6 +33,8 @@ handler_t find_handler(const char *url, const char *method) {
 }
 
 int handle_metrics_general(struct MHD_Connection *connection, void *data) {
+    log_info("Handle getting general metrics info");
+    
     miner_record info;
     storage_get_miner_info(&info);
 
@@ -51,6 +54,7 @@ int handle_metrics_general(struct MHD_Connection *connection, void *data) {
 }
 
 int handle_device_info(struct MHD_Connection *connection, void *data) {
+    log_info("Handle getting device info");
     char *device_model = get_miner_model();
 
     cJSON *root = cJSON_CreateObject();
@@ -67,6 +71,8 @@ int handle_device_info(struct MHD_Connection *connection, void *data) {
 }
 
 int handle_unknown(struct MHD_Connection *connection, void *data) {
+    log_info("Handle unknown endpoint");
+
     cJSON *err = cJSON_CreateObject();
     cJSON_AddStringToObject(err, "error", "Unknown endpoint");
     char *err_str = cJSON_PrintUnformatted(err);

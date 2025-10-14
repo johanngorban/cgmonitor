@@ -2,7 +2,7 @@
 #include "storage.h"
 #include "asic_info.h"
 #include "parsers.h"
-#include "logging.h"
+#include <clog/logging.h>
 
 #include <arpa/inet.h>
 #include <sys/socket.h>

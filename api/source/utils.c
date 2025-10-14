@@ -1,6 +1,7 @@
 #include "utils.h"
 
 #include <string.h>
+#include <clog/logging.h>
 
 int send_json(struct MHD_Connection *connection, const char *json) {
     struct MHD_Response *response;

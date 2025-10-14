@@ -1,5 +1,5 @@
 #include "parsers.h"
-#include "logging.h"
+#include <clog/logging.h>
 
 #include <cjson/cJSON.h>
 #include <math.h>

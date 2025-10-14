@@ -1,5 +1,6 @@
 #include "cache.h"
 #include <string.h>
+#include <clog/logging.h>
 
 static miner_record cache = {0};
 static int cached = 0;

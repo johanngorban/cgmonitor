@@ -7,7 +7,7 @@
 #include "server.h"
 #include "collector.h"
 #include "storage.h"
-#include "logging.h"
+#include <clog/logging.h>
 
 pthread_t collector_tid;
 pthread_t storage_tid;

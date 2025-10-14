@@ -6,6 +6,7 @@
 #include <sqlite3.h>
 #include <stdint.h>
 #include <sys/types.h>
+#include <clog/logging.h>
 
 static sqlite3 *sql_db = NULL;
 
@@ -22,15 +23,14 @@ const char sql_create_device_table[] =      \
 int db_init(const char *db_path) {
     int status = sqlite3_open(db_path, &sql_db);
     if (status != SQLITE_OK) {
-        // TODO: add logs
-        fprintf(stderr, "Cannot open sql_db: %s\n", sqlite3_errmsg(sql_db));
+        log_debug("Cannot open sql_db: %s\n", sqlite3_errmsg(sql_db));
         return -1;
     }
 
     char *err = NULL;
     status = sqlite3_exec(sql_db, sql_create_device_table, NULL, NULL, &err);
     if (status != SQLITE_OK) {
-        // TODO: add logs
+        log_debug("Cannot create table for database");
         sqlite3_free(err);
     }
 
@@ -39,7 +39,7 @@ int db_init(const char *db_path) {
 
 void db_free() {
     if (sql_db != NULL) {
-        // TODO: add logs
+        log_debug("Cannot close database");
         sqlite3_close(sql_db);
         sql_db = NULL;
     }
@@ -47,7 +47,6 @@ void db_free() {
 
 int db_insert_miner_info(const miner_info *m, time_t t) {
     if (m == NULL) {
-        // TODO: add logs
         return -1;
     }
 
@@ -58,7 +57,7 @@ int db_insert_miner_info(const miner_info *m, time_t t) {
     sqlite3_stmt *stmt;
     int status = sqlite3_prepare_v2(sql_db, sql_insert_miner_info, -1, &stmt, NULL);
     if (status != SQLITE_OK) {
-        // TODO: add logs
+        log_debug("Internal error while preparing insert SQL-query");
         return -1;
     }
 
@@ -70,7 +69,7 @@ int db_insert_miner_info(const miner_info *m, time_t t) {
 
     status = sqlite3_step(stmt);
     if (status != SQLITE_DONE) {
-        // TODO: add logs
+        log_debug("Error occurred while binding data in inserting");
         return -1;
     }
 
@@ -85,7 +84,7 @@ static int allocate_miner_records(miner_record **m, int count) {
     }
     *m = (miner_record *) malloc(sizeof(miner_record) * count);
     if (*m == NULL) {
-        // TODO: add logs
+        log_debug("Miner record allocation error");
         return -1;
     }
 
@@ -94,7 +93,6 @@ static int allocate_miner_records(miner_record **m, int count) {
 
 int db_get_all_miner_info(miner_record **m, int max_count) {
     if (m == NULL || max_count < 1) {
-        // TODO: add logs
         return -1;
     }
 
@@ -104,7 +102,7 @@ int db_get_all_miner_info(miner_record **m, int max_count) {
     sqlite3_stmt *stmt;
     int status = sqlite3_prepare_v2(sql_db, sql_select_records, -1, &stmt, NULL);
     if (status != SQLITE_OK) {
-        // TODO: add logs
+        log_debug("Internal error while preparing select SQL-query");
         return -1;
     }
     
@@ -122,9 +120,12 @@ int db_get_all_miner_info(miner_record **m, int max_count) {
         (*m)[extracted].data.voltage    = sqlite3_column_double(stmt, 4);
         (*m)[extracted].time            = sqlite3_column_int(stmt, 5);
         extracted++;
-        // TODO: add logs
+
+        log_debug("Extracted miner record of time: %lu", (*m)[extracted].time);
     }
     sqlite3_finalize(stmt);
+
+    log_debug("Extracted %d records", extracted);
 
     return extracted;
 }
@@ -140,7 +141,7 @@ int db_get_last_miner_info(miner_record *m) {
     sqlite3_stmt *stmt;
     int status = sqlite3_prepare_v2(sql_db, sql_select_last, -1, &stmt, NULL);
     if (status != SQLITE_OK) {
-        // TODO: add logs
+        log_debug("Internal error while preparing select SQL-query");
         return -1;
     }
 

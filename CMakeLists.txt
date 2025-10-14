@@ -1,13 +1,13 @@
 project(cgmonitor)
 cmake_minimum_required(VERSION 3.16)
 
+find_package(clog REQUIRED)
 find_package(cJSON REQUIRED)
 find_package(SQLite3 REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(MHD REQUIRED libmicrohttpd)
 
 add_subdirectory(shared/asic)
-add_subdirectory(shared/clog)
 
 file(GLOB SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/main.c
