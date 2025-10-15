@@ -78,7 +78,7 @@ int db_insert_miner_info(const miner_info *m, time_t t) {
     return 0;
 }
 
-static int allocate_miner_records(miner_record **m, int count) {
+static int allocate_miner_records(miner_record **m, size_t count) {
     if (*m != NULL) {
         free(*m);
     }
@@ -157,4 +157,59 @@ int db_get_last_miner_info(miner_record *m) {
 
     sqlite3_finalize(stmt);
     return found;
+}
+
+int db_get_new_miner_info(miner_record **m, time_t newer_than) {
+    if (m == NULL) {
+        return -1;
+    }
+
+    const char sql_select_records[] = \
+    "SELECT * FROM device WHERE time >= ? ORDER BY time";
+
+    sqlite3_stmt *stmt;
+    int status = sqlite3_prepare_v2(sql_db, sql_select_records, -1, &stmt, NULL);
+    if (status != SQLITE_OK) {
+        log_debug("Internal error while preparing select SQL-query");
+        return -1;
+    }
+    
+    size_t capacity = 128;
+    status = allocate_miner_records(m, capacity); // default value
+    if (status != 0) {
+        free(*m);
+        sqlite3_finalize(stmt);
+        return -1;
+    }
+
+    sqlite3_bind_int64(stmt, 1, (sqlite3_int64) newer_than);
+
+    size_t extracted = 0;
+    while (sqlite3_step(stmt) == SQLITE_ROW) {
+        if (extracted >= capacity) {
+            capacity *= (capacity >= 4096) ? 1.2 : 2;
+            miner_record *tmp = realloc(*m, sizeof(miner_record) * capacity);
+            if (tmp == NULL) {
+                free(*m);
+                sqlite3_finalize(stmt);
+                return -1;
+            }
+            *m = tmp;
+        }
+
+        (*m)[extracted].data.hashrate   = sqlite3_column_double(stmt, 1);
+        (*m)[extracted].data.temp       = sqlite3_column_double(stmt, 2);
+        (*m)[extracted].data.power      = sqlite3_column_double(stmt, 3);
+        (*m)[extracted].data.voltage    = sqlite3_column_double(stmt, 4);
+        (*m)[extracted].time            = sqlite3_column_int64(stmt, 5);
+
+        log_debug("Extracted miner record of time: %lu", (*m)[extracted].time);
+
+        extracted++;
+    }
+    sqlite3_finalize(stmt);
+
+    log_debug("Extracted %d records", extracted);
+
+    return (int) extracted;
 }

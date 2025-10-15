@@ -25,3 +25,7 @@ int db_get_all_miner_info(miner_record **m, int max_count);
 // Get only the last miner info in database, save it into m
 // Return 0 on success, -1 on errors
 int db_get_last_miner_info(miner_record *m);
+
+//
+//
+int db_get_new_miner_info(miner_record **m, time_t newer_than);

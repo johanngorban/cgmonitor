@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <clog/logging.h>
+#include <time.h>
 
 static unsigned update_period = 5;
 
@@ -81,4 +82,8 @@ int storage_get_all_miner_info(miner_record **out, int max_count) {
     }
 
     return extracted;
+}
+
+int storage_get_new_miner_info(miner_record **out, time_t newer_than) {
+    return db_get_new_miner_info(out, newer_than);
 }
