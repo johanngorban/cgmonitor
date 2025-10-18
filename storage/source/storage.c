@@ -2,6 +2,7 @@
 
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 #include <clog/logging.h>
 #include <time.h>
 
@@ -57,6 +58,8 @@ int storage_get_miner_info(miner_record *out) {
     if (out == NULL) {
         return -1;
     }
+
+    memset(out, 0, sizeof(miner_record));
 
     int status = cache_get_miner_info(out);
     if (status == 0) {
