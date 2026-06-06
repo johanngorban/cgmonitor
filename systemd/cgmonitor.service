@@ -1,0 +1,24 @@
+[Unit]
+Description=cgminer monitoring service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/cgmonitor -c /etc/cgmonitor/cgmonitor.conf
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/var/lib/cgmonitor
+
+# Hardening — comment out anything that breaks your environment.
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/cgmonitor /var/log/cgmonitor
+
+User=cgmonitor
+Group=cgmonitor
+
+[Install]
+WantedBy=multi-user.target

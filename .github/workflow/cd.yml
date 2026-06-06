@@ -1,0 +1,159 @@
+name: CD
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Override version (e.g. 0.2.0). Empty = use VERSION file."
+        required: false
+        type: string
+      force_release:
+        description: "Re-release even if the tag already exists."
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.ver.outputs.version }}
+      tag: ${{ steps.ver.outputs.tag }}
+      should_release: ${{ steps.tag_check.outputs.should_release }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve version
+        id: ver
+        run: |
+          set -euo pipefail
+          OVERRIDE="${{ inputs.version }}"
+          if [[ -n "$OVERRIDE" ]]; then
+            V="$OVERRIDE"
+            echo "Source: workflow_dispatch input"
+          elif [[ -f VERSION ]]; then
+            V="$(tr -d ' \t\r\n' < VERSION)"
+            echo "Source: VERSION file"
+          else
+            echo "::error::No VERSION file and no manual override provided."
+            exit 1
+          fi
+          V="${V#v}"   # strip leading 'v' if present
+          # Accept semver-ish: MAJOR.MINOR.PATCH with an optional -prerelease suffix.
+          if [[ ! "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::Version '$V' is not in v0.0.0 format."
+            exit 1
+          fi
+          echo "Resolved version: $V"
+          echo "version=$V"  >> "$GITHUB_OUTPUT"
+          echo "tag=v$V"     >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag exists
+        id: tag_check
+        run: |
+          TAG="${{ steps.ver.outputs.tag }}"
+          FORCE="${{ inputs.force_release }}"
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            if [[ "$FORCE" == "true" ]]; then
+              echo "Tag $TAG exists, but force_release=true. Will recreate."
+              echo "should_release=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "Tag $TAG already exists. Skipping release (build only)."
+              echo "should_release=false" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "Tag $TAG does not exist. Will release."
+            echo "should_release=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install build deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config python3 \
+            libcjson-dev libmicrohttpd-dev libsqlite3-dev
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build -j"$(nproc)"
+
+      - name: Smoke-test the binary
+        run: |
+          ./build/cgmonitor --help > /dev/null
+          echo "Binary runs."
+
+      - name: Package
+        id: pkg
+        run: |
+          set -euo pipefail
+          V="${{ steps.ver.outputs.version }}"
+          STAGE="cgmonitor-${V}-linux-x86_64"
+          mkdir -p "dist/${STAGE}"
+          cp build/cgmonitor              "dist/${STAGE}/cgmonitor"
+          cp config/cgmonitor.conf.example "dist/${STAGE}/"
+          cp systemd/cgmonitor.service     "dist/${STAGE}/"
+          cp install.sh README.md          "dist/${STAGE}/"
+          strip "dist/${STAGE}/cgmonitor" || true
+          tar -czf "dist/${STAGE}.tar.gz" -C dist "${STAGE}"
+          ( cd "dist/${STAGE}" && sha256sum cgmonitor ) > "dist/${STAGE}.sha256"
+          ls -la dist/
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cgmonitor-${{ steps.ver.outputs.version }}-linux-x86_64
+          path: dist/cgmonitor-*-linux-x86_64.tar.gz
+          retention-days: 30
+
+  release:
+    needs: build
+    if: needs.build.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cgmonitor-${{ needs.build.outputs.version }}-linux-x86_64
+          path: dist/
+
+      - name: Create and push tag
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # If we got here with force_release on an existing tag, delete and recreate it.
+          if git rev-parse "refs/tags/$TAG" >/dev/null 2>&1; then
+            git tag -d "$TAG"
+            git push --delete origin "$TAG" || true
+          fi
+          git tag -a "$TAG" -m "Release $TAG"
+          git push origin "$TAG"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.build.outputs.tag }}
+          name: ${{ needs.build.outputs.tag }}
+          generate_release_notes: true
+          files: dist/*

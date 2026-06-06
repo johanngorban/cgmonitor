@@ -1,0 +1,12 @@
+BasedOnStyle: LLVM
+BreakBeforeBraces: Attach
+InsertBraces: true
+IndentWidth: 4
+SpaceBeforeParens: ControlStatements
+ColumnLimit: 0
+SpaceAfterCStyleCast: true
+
+AlignConsecutiveMacros:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: false

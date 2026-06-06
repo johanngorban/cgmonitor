@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>cgmonitor</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="bar">
+  <div class="brand"><span class="dot" id="dot"></span><span>cgmonitor</span></div>
+  <div class="bar-meta">
+    <span id="fw-version" class="dim"></span>
+    <span class="sep"></span>
+    <label class="period">
+      period
+      <select id="period">
+        <option value="100">100ms</option>
+        <option value="250">250ms</option>
+        <option value="500">500ms</option>
+        <option value="1000" selected>1s</option>
+        <option value="2000">2s</option>
+        <option value="5000">5s</option>
+        <option value="10000">10s</option>
+      </select>
+    </label>
+    <button id="pause">pause</button>
+    <span id="last" class="dim">—</span>
+  </div>
+</div>
+
+<main id="root">
+  <section class="grid grid-summary">
+    <div class="card kpi" data-kind="hashrate">
+      <header>HASHRATE</header>
+      <div class="big" id="kpi-hashrate">—</div>
+      <div class="sub">
+        <span>5m <em id="kpi-h5m">—</em></span>
+        <span>1h <em id="kpi-h1h">—</em></span>
+      </div>
+    </div>
+
+    <div class="card kpi">
+      <header>SHARES</header>
+      <div class="big ok" id="kpi-acc">—</div>
+      <div class="sub">
+        <span>reject <em id="kpi-rej">—</em> <em class="muted" id="kpi-rej-pct"></em></span>
+      </div>
+    </div>
+
+    <div class="card kpi">
+      <header>HW ERR</header>
+      <div class="big" id="kpi-hwe">—</div>
+      <div class="sub"><span id="kpi-hwe-pct">—</span></div>
+    </div>
+
+    <div class="card kpi">
+      <header>POWER</header>
+      <div class="big" id="kpi-power">—</div>
+      <div class="sub"><span>efficiency <em id="kpi-eff">—</em></span></div>
+    </div>
+
+    <div class="card kpi">
+      <header>UPTIME</header>
+      <div class="big" id="kpi-uptime">—</div>
+      <div class="sub"><span id="kpi-active-pool" class="muted">no pool</span></div>
+    </div>
+  </section>
+
+  <section class="grid two-col">
+    <div class="card">
+      <header>HASH BOARDS</header>
+      <table class="data" id="t-boards">
+        <thead><tr>
+          <th>#</th><th>status</th><th>chip °C</th><th>pcb °C</th>
+          <th>freq MHz</th><th>chips</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+      <div class="empty" id="empty-boards">no data</div>
+    </div>
+
+    <div class="card">
+      <header>FANS</header>
+      <div class="fans" id="fans-wrap"></div>
+      <div class="empty" id="empty-fans">no data</div>
+    </div>
+  </section>
+
+  <section class="card">
+    <header>POOLS</header>
+    <table class="data" id="t-pools">
+      <thead><tr>
+        <th>#</th><th>url</th><th>status</th><th>active</th>
+        <th>latency</th><th>accepted</th><th>rejected</th><th>stale</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="empty" id="empty-pools">no data</div>
+  </section>
+</main>
+
+<script type="module" src="/app.js"></script>
+</body>
+</html>

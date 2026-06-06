@@ -1,0 +1,49 @@
+# cgmonitor.conf — annotated example.
+#
+# Lines starting with '#' or ';' are comments.
+# Keys can be unprefixed (e.g. `port`) within a [section] header,
+# or fully prefixed (e.g. `server_port`) at the top level.
+
+[server]
+# HTTP listen port — used by the frontend and any external pollers.
+port = 9097
+# Bind address. 0.0.0.0 = all interfaces. 127.0.0.1 to lock down.
+bind = 0.0.0.0
+
+[firmware]
+# Which protocol module to use. Built-in: cgminer.
+protocol = cgminer
+
+# Where the miner's RPC API lives. On-device the default loopback is fine.
+host = 127.0.0.1
+port = 4028
+
+# How often the backend polls the firmware (milliseconds).
+# Most cgminer-derived firmwares can't survive < 1000 here.
+poll_interval_ms     = 2000
+connect_timeout_ms   = 2000
+read_timeout_ms      = 3000
+
+# How many consecutive failures before we sleep `backoff_ms`.
+max_failures = 5
+backoff_ms   = 20000
+
+[storage]
+# SQLite history. Set to false to disable persistent storage entirely.
+enabled = true
+path    = data/cgmonitor.db
+# How often to commit the current snapshot to disk.
+write_interval_ms = 10000
+# Prune rows older than this. 0 = never prune.
+retention_hours = 168    ; 7 days
+
+[logging]
+path  = cgmonitor.log
+# debug | info | warn | error
+level = info
+
+[thresholds]
+# Temperature thresholds (Celsius) exposed via /api/config — frontend
+# uses them for color-coding.
+temp_warn_c = 70
+temp_crit_c = 85
